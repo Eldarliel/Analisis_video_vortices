@@ -1,0 +1,81 @@
+## Graficar 5 mediciones
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+
+
+nombres = ["VID_20250213_144224967","VID_20250213_163558985", "VID_20250213_1635589853",
+           "VID_20250213_1635589854","VID_20250213_1635589855"]
+
+ext = ".csv"
+
+conversion = [3.5,8] ## estos son los ratios de conversion de pixel a cm para cada vid
+
+all_data = []
+
+##carga de datos en un diccionario gigante.
+for i in range(len(nombres)):
+    video = nombres[i] + ext
+    data = np.loadtxt(video, delimiter = ',', skiprows = 5)
+    
+    # los datos en vectores individuales
+    radii_t = data[:, 0]  # Radios en dirección theta
+    avg_vtheta_norm = data[:, 1]  # Velocidad angular promedio normalizada
+    errorss_t_norm = data[:, 2]  # Errores en la velocidad angular normalizada
+    radii_r = data[:, 3]  # Radios en dirección radial
+    avg_vtrad_norm = data[:, 4]  # Velocidad radial promedio normalizada
+    errorss_r_norm = data[:, 5]  # Errores en la velocidad radial normalizada
+
+    # Almacenar los datos en un diccionario
+    video_data = {
+        "radii_t": radii_t,
+        "avg_vtheta_norm": avg_vtheta_norm,
+        "errorss_t_norm": errorss_t_norm,
+        "radii_r": radii_r,
+        "avg_vtrad_norm": avg_vtrad_norm,
+        "errorss_r_norm": errorss_r_norm
+    }
+
+    all_data.append(video_data)  # Añadir los datos del video actual a la lista
+
+
+
+# Paleta de colores y símbolos
+colores = ['b', 'g', 'r', 'c', 'm']  #colores
+simbolos = ['o', 's', '^', 'D', 'v']  # formas
+# Gráfico
+plt.figure(figsize=(10, 6))
+
+for i, video_data in enumerate(all_data):
+    color = colores[i % len(colores)]  # Color para el video actual
+    simbolo = simbolos[i % len(simbolos)]  # Símbolo para el video actual
+
+    # Subgráfico para la dirección theta
+    plt.subplot(1, 2, 1)
+    plt.errorbar(video_data["radii_t"], video_data["avg_vtheta_norm"], yerr=np.abs(video_data["errorss_t_norm"]),
+                 fmt=color + simbolo, markersize=1, capsize=3, label=f'Medicion {i+1}')  # Añadido etiqueta
+    plt.grid(True)
+    
+    # Subgráfico para la dirección radial
+    plt.subplot(1, 2, 2)
+    plt.errorbar(video_data["radii_r"], -video_data["avg_vtrad_norm"], yerr=np.abs(video_data["errorss_r_norm"]),
+                 fmt=color + simbolo, markersize=1, capsize=3, label=f'Medicion {i+1}')  # Añadido etiqueta
+
+# Etiquetas y títulos comunes a ambos subgráficos
+plt.subplot(1, 2, 1)
+plt.xlabel(r'Radio $r$',fontsize = 16)
+plt.ylabel(r'$v_{\theta}/v_{\theta}^{max}$',fontsize = 16)
+plt.title('Velocidad Tangencial Promedio Vs Radio')
+plt.legend()
+plt.grid(True)
+
+plt.subplot(1, 2, 2)
+plt.xlabel('Radio $r$')
+plt.ylabel(r'$v_{r}/v_{\theta}^{max}$',fontsize = 16)
+plt.title('Velocidad Radial Promedio Vs Radio',fontsize = 16)
+plt.legend()
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()
